@@ -1,0 +1,39 @@
+version: '3.9'
+
+services:
+  backend:
+    build:
+      dockerfile: ./Dockerfile
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+      - redis
+    env_file:
+      - .env
+    restart: always
+
+  migrate-db:
+    build:
+      dockerfile: ./Dockerfile
+      context: .
+    volumes:
+      - "./:/app"
+    links:
+      - postgres
+    command: alembic upgrade head
+
+  postgres:
+    image: postgres:15
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - TZ=Europe/Moscow
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: "redis:latest"
+    ports:
+      - "6379:6379"
